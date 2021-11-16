@@ -1,5 +1,8 @@
 # life-expentacy
 
+### Dataset
+* https://www.kaggle.com/kumarajarshi/life-expectancy-who
+
 ### TODO
 * Exclude `Year` and `Country` and `Status`
   - [ ] Use VIP to reduce descriptors
