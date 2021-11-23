@@ -2,14 +2,37 @@
 library(hydroGOF)
 library(e1071)
 library(glmnet)
+library(dplyr) 
 
 life_expectancy_ds <- read.csv(file = "./Life_Expectancy_Data.csv")
 life_expectancy_ds <- na.omit(life_expectancy_ds)
 
+# Remove Columns with String Value
 life_expectancy_ds_wo_str <- life_expectancy_ds[, 4:22]
+
+# Divide dataset to Developed Country and Developing Country
+developing <- filter(life_expectancy_ds, Status == "Developing")
+developed <- filter(life_expectancy_ds, Status == "Developed")
+
+# Data that only contains economy factors descriptors
+economy <- life_expectancy_ds[, c("Life.expectancy", "GDP", "thinness..1.19.years", "thinness.5.9.years", "Income.composition.of.resources")]
+
+# Data that only contains medical factors descriptors
+medical <- life_expectancy_ds[, c("Life.expectancy", "Hepatitis.B", "Polio", "Total.expenditure", "Diphtheria")]
+
+# Data that only contains disease factors descriptors
+disease <- life_expectancy_ds[, c("Life.expectancy", "Measles", "HIV.AIDS")]
+
+# Data by recent years (2015 only has two rows so we exclude it)
+fourteen <- filter(life_expectancy_ds, Year == "2014")
+thirdteen <- filter(life_expectancy_ds, Year == "2013")
+twelve <- filter(life_expectancy_ds, Year == "2012")
+eleven <- filter(life_expectancy_ds, Year == "2011")
+ten <- filter(life_expectancy_ds, Year == "2010")
 
 life_expectancy <- life_expectancy_ds_wo_str[,1]
 descriptors <- life_expectancy_ds[, 5:22]
+
 
 # Use VIP to see the correlation between life expectancy
 std_desc <- as.data.frame(scale(life_expectancy_ds_wo_str))
