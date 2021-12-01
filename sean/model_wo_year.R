@@ -12,36 +12,32 @@ life_expectancy_ds <- na.omit(life_expectancy_ds)
 # Remove Columns with String Value
 life_expectancy_ds_wo_str <- life_expectancy_ds[, 4:22]
 
-# Include Year
-Year <- life_expectancy_ds[, 2]
-data_with_year <- data.frame(life_expectancy_ds_wo_str, Year)
-
 # Use VIP to see the correlation between life expectancy
-std_desc <- as.data.frame(scale(data_with_year))
+std_desc <- as.data.frame(scale(life_expectancy_ds_wo_str))
 pca <- prcomp(std_desc)
 plot(pca$sdev)
 pca$sdev
 sum(pca$sdev)
-sum(pca$sdev[1:14]) / sum(pca$sdev)
+sum(pca$sdev[1:13]) / sum(pca$sdev)
 
 loads <- pca$rotation
-loads_vip<-loads[,1:14]
+loads_vip<-loads[,1:13]
 property_vip<-loads_vip[1,]
-features_vip<-loads_vip[2:20,]
+features_vip<-loads_vip[2:19,]
 weight_vip<-property_vip*features_vip
-vip <- weight_vip[, 1] + weight_vip[, 2] + weight_vip[, 3] + weight_vip[, 4] + weight_vip[, 5] + weight_vip[, 6] + weight_vip[, 7] + weight_vip[, 8] + weight_vip[, 9] + weight_vip[, 10] + weight_vip[, 11] + weight_vip[, 12] + weight_vip[, 13] + weight_vip[, 14]
+vip <- weight_vip[, 1] + weight_vip[, 2] + weight_vip[, 3] + weight_vip[, 4] + weight_vip[, 5] + weight_vip[, 6] + weight_vip[, 7] + weight_vip[, 8] + weight_vip[, 9] + weight_vip[, 10] + weight_vip[, 11] + weight_vip[, 12] + weight_vip[, 13]
 
-# Total.expenditure, BMI, under.five.deaths, Polio, Population, Schooling
+# Adult.Mortality, Polio, under.five.deaths, Measles, Population, HIV.AIDS
 sort(x = vip,decreasing = TRUE)
 barplot(vip)
 
 set.seed(508)
-ds_sort <- sample(1:nrow(data_with_year),nrow(data_with_year)*0.8)
+ds_sort <- sample(1:nrow(life_expectancy_ds_wo_str),nrow(life_expectancy_ds_wo_str)*0.8)
 
 # SLR
-train_slr<-data_with_year[ds_sort,]
-test_slr<-data_with_year[-ds_sort,]
-mdl_slr <- lm(Life.expectancy~Year, data=train_slr)
+train_slr<-life_expectancy_ds_wo_str[ds_sort,]
+test_slr<-life_expectancy_ds_wo_str[-ds_sort,]
+mdl_slr <- lm(Life.expectancy~Adult.Mortality, data=train_slr)
 pred_train_slr <- predict(mdl_slr,data=train_slr)
 pred_test_slr <- predict(mdl_slr,newdata=test_slr)
 rmse_slr_train <- rmse(pred_train_slr,train_slr$Life.expectancy)
@@ -55,9 +51,9 @@ rsq
 summary(mdl_slr)
 
 # MLR
-train_mlr<-data_with_year[ds_sort,]
-test_mlr<-data_with_year[-ds_sort,]
-mdl_mlr <- lm(Life.expectancy~Total.expenditure+BMI+under.five.deaths+Polio+Population+Schooling, data=train_mlr)
+train_mlr<-life_expectancy_ds_wo_str[ds_sort,]
+test_mlr<-life_expectancy_ds_wo_str[-ds_sort,]
+mdl_mlr <- lm(Life.expectancy~Adult.Mortality+Polio+under.five.deaths+Measles+Population+HIV.AIDS, data=train_mlr)
 pred_train_mlr <- predict(mdl_mlr,data=train_mlr)
 pred_test_mlr <- predict(mdl_mlr,newdata=test_mlr)
 rmse_mlr_train <- rmse(pred_train_mlr,train_mlr$Life.expectancy)
@@ -71,8 +67,8 @@ rsq
 summary(mdl_mlr)
 
 # SVR
-train_svr<-data_with_year[ds_sort,]
-test_svr<-data_with_year[-ds_sort,]
+train_svr<-life_expectancy_ds_wo_str[ds_sort,]
+test_svr<-life_expectancy_ds_wo_str[-ds_sort,]
 train_svr_d<-data.frame(train_svr)
 descriptors_train_svr<-train_svr[,! names(train_svr) %in% c("Life.expectancy")]
 descriptors_test_svr<-test_svr[,! names(test_svr) %in% c("Life.expectancy")]
@@ -84,7 +80,7 @@ mdl_svr<-tune(svm,prop_train_svr~descriptors_train_svr,ranges=list(epsilon=seq(0
 BstModel<-mdl_svr$best.model
 summary(BstModel)
 #Update the regression model with the selections from BstModel (kernel, cost, gamma, epsilon)
-svmfit <- svm(train_svr$Life.expectancy ~., data = train_svr, method="eps-regression",kernel = 'radial', cost = 6, gamma=0.05263158,epsilon=0,scale=FALSE)
+svmfit <- svm(train_svr$Life.expectancy ~., data = train_svr, method="eps-regression",kernel = 'radial', cost = 5, gamma=0.05555556,epsilon=0,scale=FALSE)
 pred_train_svr<-predict(svmfit, data=descriptors_train_svr)
 pred_test_svr<-predict(svmfit,newdata=descriptors_test_svr)
 rmse_SVR_train<-rmse(pred_train_svr,prop_train_svr)
@@ -97,8 +93,8 @@ rsq<-1-sse/sst
 rsq
 
 # GPR
-train_gpr<-data_with_year[ds_sort,]
-test_gpr<-data_with_year[-ds_sort,]
+train_gpr<-life_expectancy_ds_wo_str[ds_sort,]
+test_gpr<-life_expectancy_ds_wo_str[-ds_sort,]
 descriptors_train_gpr<-train_gpr[,! names(train_gpr) %in% c("Life.expectancy")]
 descriptors_test_gpr<-test_gpr[,! names(train_gpr) %in% c("Life.expectancy")]
 mdl_gpr<-gausspr(descriptors_train_gpr,train_gpr$Life.expectancy)
@@ -114,8 +110,8 @@ rsq<-1-sse/sst
 rsq
 
 # Random Forest
-train_rf<-data_with_year[ds_sort,]
-test_rf<-data_with_year[-ds_sort,]
+train_rf<-life_expectancy_ds_wo_str[ds_sort,]
+test_rf<-life_expectancy_ds_wo_str[-ds_sort,]
 model_rf<-randomForest(train_rf$Life.expectancy~.,data=train_rf,mtry=3,importance=TRUE,na.action=na.omit)
 pred_train_rf<-predict(model_rf,train_rf)
 pred_test_rf<-predict(model_rf,newdata=test_rf)
@@ -127,4 +123,3 @@ sst<-sum((train_rf$Life.expectancy-mean(train_rf$Life.expectancy))^2)
 sse<-sum((pred_train_rf-train_rf$Life.expectancy)^2)
 rsq<-1-sse/sst
 rsq
-
