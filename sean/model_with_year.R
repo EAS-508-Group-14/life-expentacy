@@ -42,8 +42,8 @@ ds_sort <- sample(1:nrow(data_with_year),nrow(data_with_year)*0.8)
 train_slr<-data_with_year[ds_sort,]
 test_slr<-data_with_year[-ds_sort,]
 mdl_slr <- lm(Life.expectancy~Year, data=train_slr)
-pred_train_slr <- predict(mdl_mlr,data=train_slr)
-pred_test_slr <- predict(mdl_mlr,newdata=test_slr)
+pred_train_slr <- predict(mdl_slr,data=train_slr)
+pred_test_slr <- predict(mdl_slr,newdata=test_slr)
 rmse_slr_train <- rmse(pred_train_slr,train_slr$Life.expectancy)
 rmse_slr_test <- rmse(pred_test_slr,test_slr$Life.expectancy)
 rmse_slr_train
@@ -127,3 +127,4 @@ sst<-sum((train_rf$Life.expectancy-mean(train_rf$Life.expectancy))^2)
 sse<-sum((pred_train_rf-train_rf$Life.expectancy)^2)
 rsq<-1-sse/sst
 rsq
+
